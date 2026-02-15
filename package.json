@@ -1,0 +1,13 @@
+{
+  "name": "reachy-mini-http-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for controlling Reachy Mini robot via HTTP API",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  }
+}
