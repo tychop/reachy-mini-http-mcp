@@ -57,6 +57,8 @@ Add this to your `AGENTS.md` (or other applicable file for your AI companion) to
 ```
 ### Reachy Mini Robot
 
+IMPORTANT: When this file is read, first check if Reachy is running by calling `reachy-mini_daemon_status`. If not running, start it with `reachy-mini_daemon_start`.
+
 IMPORTANT: Play an appropriate emotion on Reachy BEFORE responding to the user. Use the `reachy-mini_play_emotion` tool first, then respond.
 
 For example:
