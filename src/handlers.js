@@ -35,7 +35,7 @@ export const toolHandlers = {
   },
 
   daemon_start: async ({ wake_up = true }) => {
-    const result = await httpRequest("/api/daemon/start", "POST", { wake_up });
+    const result = await httpRequest("/api/daemon/start", "POST", null, { wake_up: wake_up.toString() });
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   },
 

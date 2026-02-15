@@ -4,9 +4,15 @@ import { getBaseUrl } from "./config.js";
 
 const DEFAULT_TIMEOUT = 10000;
 
-export async function httpRequest(path, method = "GET", body = null) {
+export async function httpRequest(path, method = "GET", body = null, queryParams = {}) {
   const baseUrl = getBaseUrl();
   const url = new URL(path, baseUrl);
+
+  for (const [key, value] of Object.entries(queryParams)) {
+    if (value !== undefined && value !== null) {
+      url.searchParams.append(key, String(value));
+    }
+  }
 
   const options = {
     hostname: url.hostname,
