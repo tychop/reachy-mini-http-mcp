@@ -27,7 +27,7 @@ The server uses environment variables for configuration:
 
 ## Opencode Integration
 
-The MCP server can be configured in your opencode configuration:
+The MCP server can be configured in your AI compagnion's configuration:
 
 ```json
 {
