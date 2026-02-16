@@ -8,10 +8,14 @@ export const tools = [
 			properties: {},
 		},
 	},
+	/* daemon_wakeup removed: use startup_reachy for starting and wake-up behavior */
+
+	/* single-move goto_sleep removed: prefer shutdown_reachy or direct POST to /api/move/play/goto_sleep */
+
 	{
-		name: "daemon_wakeup",
+		name: "verify_wake",
 		description:
-			"Trigger the daemon wake-up sequence (full robot wake). Use to fully wake the robot from sleep.\n\nThis replaces the previous `startup_reachy` tool which had a longer startup flow.",
+			"Verify the robot is awake by checking state or performing a safe test move. Returns a concise wake_verified result.",
 		inputSchema: {
 			type: "object",
 			properties: {},
@@ -20,36 +24,43 @@ export const tools = [
 	{
 		name: "shutdown_reachy",
 		description:
-			"Shutdown Reachy Mini: stop running moves, request sleep and stop the daemon; returns status after each step.",
-		inputSchema: {
-			type: "object",
-			properties: {},
-		},
-	},
-	{
-		name: "daemon_status",
-		description:
-			"Get the current daemon health status. Returns daemon state and backend status.",
-		inputSchema: {
-			type: "object",
-			properties: {},
-		},
-	},
-	{
-		name: "daemon_start",
-		description:
-			"Start the Reachy Mini daemon. Optionally wake up the robot motors.",
+			"Stop the Reachy Mini daemon (single-call). Calls POST /api/daemon/stop?goto_sleep=true by default.",
 		inputSchema: {
 			type: "object",
 			properties: {
-				wake_up: {
+				goto_sleep: {
 					type: "boolean",
-					description: "Whether to wake up the robot motors (default: true)",
+					description: "Whether to request the robot to go to sleep during daemon stop (default: true)",
 					default: true,
 				},
 			},
 		},
 	},
+    {
+        name: "reachy_status",
+        description:
+            "Get the current Reachy status (daemon + backend). Returns daemon state and backend status.",
+        inputSchema: {
+            type: "object",
+            properties: {},
+        },
+    },
+	{
+		name: "startup_reachy",
+		description:
+			"Start the Reachy Mini daemon. Calls POST /api/daemon/start?wake_up=true by default.",
+		inputSchema: {
+			type: "object",
+			properties: {
+				wake_up: {
+					type: "boolean",
+					description: "Whether to wake up the robot motors on start (default: true)",
+					default: true,
+				},
+			},
+		},
+	},
+	/* daemon_stop removed in favor of startup_reachy/shutdown_reachy naming */
 	{
 		name: "get_robot_state",
 		description:
@@ -304,13 +315,5 @@ export const tools = [
 			required: ["dataset"],
 		},
 	},
-	{
-		name: "get_camera_stream",
-		description:
-			"Get information about the camera stream endpoint. Returns the MJPEG stream URL.",
-		inputSchema: {
-			type: "object",
-			properties: {},
-		},
-	},
+
 ];

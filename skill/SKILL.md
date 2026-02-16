@@ -20,7 +20,7 @@ Robot actions MUST run sequentially, never in parallel.
 3. For multi-step flows (emotion -> dance -> emotion), perform each step in order and confirm completion between steps.
 4. Never send two robot action calls concurrently (for example, do not run `play_emotion` and `play_dance` in parallel).
 5. If a call fails, handle or report the failure before attempting subsequent robot actions.
-6. Specifically: after `reachy-mini_daemon_start`, do not call any action (including `reachy-mini_play_emotion`) until the daemon reports it is ready. Use `reachy-mini_daemon_status` or `reachy-mini_health_check` to verify readiness.
+6. Specifically: after `reachy-mini_daemon_start`, do not call any action (including `reachy-mini_play_emotion`) until the daemon reports it is ready. Use `reachy-mini_reachy_status` or `reachy-mini_health_check` to verify readiness.
 
 Applies to all Reachy action tools: `reachy-mini_play_emotion`, `reachy-mini_play_dance`, `reachy-mini_play_move`, `reachy-mini_move_set_target`.
 

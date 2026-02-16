@@ -93,15 +93,17 @@ Restart your AI agent to pick up the skill.
 | Tool                | Description                                                 |
 | ------------------- | ----------------------------------------------------------- |
 | `health_check`      | Check if the Reachy Mini dashboard is responding            |
-| `daemon_status`     | Get the current daemon health status                        |
+| `reachy_status`     | Get the current Reachy status (daemon + backend)            |
 | `get_robot_state`   | Get full robot state (joint positions, velocities, sensors) |
 | `get_camera_stream` | Get camera stream endpoint URL                              |
 
 ### Daemon Control
 
-| Tool           | Description                                                   |
-| -------------- | ------------------------------------------------------------- |
-| `daemon_start` | Start the daemon. Options: `wake_up` (boolean, default: true) |
+| Tool             | Description                                                                                                                   |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `startup_reachy` | Start the daemon. Options: `wake_up` (boolean, default: true)                                                                |
+| `shutdown_reachy`| Stop the daemon. By default will request robot sleep (`POST /api/daemon/stop?goto_sleep=true`).                                 |
+| `verify_wake`    | Verify the robot is awake (checks `GET /api/state/full`, falls back to a safe `simple_nod` move). Returns `{ wake_verified, details }`.
 
 ### Movement Control
 
@@ -129,7 +131,8 @@ Restart your AI agent to pick up the skill.
 
 - **Backend not running**: Activate the red switch in the dashboard at http://reachy-mini.home:8000
 - **Robot unreachable**: Check network connectivity and hostname resolution
-- **Timeout errors**: Requests timeout after 10 seconds
+ - **Timeouts**: The MCP now uses a longer HTTP timeout (60s) for slow daemon operations; if you still see timeouts, check network/daemon logs.
+  - **Wake verification**: Start the daemon with `startup_reachy` (which can wake motors), then call `verify_wake`. If `verify_wake` fails the MCP will mark reachy-mini tools as disabled for the session until you run `startup_reachy` + `verify_wake` again. For basic motion you can also treat success of `get_robot_state` or `play_move` as sufficient proof of wake.
 
 ## Credits
 

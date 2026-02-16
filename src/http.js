@@ -45,10 +45,14 @@ export async function httpRequest(
 			});
 		});
 		req.on("error", reject);
-    req.setTimeout(DEFAULT_TIMEOUT, () => {
-      req.destroy();
-      reject(new Error(`Request timeout after ${DEFAULT_TIMEOUT}ms for ${method} ${url.href}`));
-    });
+		req.setTimeout(DEFAULT_TIMEOUT, () => {
+			req.destroy();
+			reject(
+				new Error(
+					`Request timeout after ${DEFAULT_TIMEOUT}ms for ${method} ${url.href}`,
+				),
+			);
+		});
 		if (body) req.write(JSON.stringify(body));
 		req.end();
 	});

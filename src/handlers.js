@@ -1,22 +1,20 @@
 import { httpRequest } from "./http.js";
 import { getBaseUrl } from "./config.js";
+import http from "http";
+import https from "https";
 
 const ALLOWED_DATASETS = [
 	"pollen-robotics/reachy-mini-emotions-library",
 	"pollen-robotics/reachy-mini-dances-library",
 ];
 
-// Helper to run httpRequest and record timing + errors for diagnostics
-async function timedRequest(stepName, path, method = "GET", body = null, queryParams = {}) {
-    const start = Date.now();
-    try {
-        const res = await httpRequest(path, method, body, queryParams);
-        const duration_ms = Date.now() - start;
-        return { step: stepName, success: true, status: res && res.status, data: res && res.data, duration_ms };
-    } catch (err) {
-        const duration_ms = Date.now() - start;
-        return { step: stepName, success: false, error: err && err.message ? err.message : String(err), duration_ms };
-    }
+// NOTE: timedRequest was a temporary diagnostic helper. Use httpRequest directly.
+
+// sessionWakeVerified removed: always allow tools (no session-level blocking)
+
+function ensureToolsAllowedOrError() {
+    // previously this enforced a session-level wake check; removed per request
+    return null;
 }
 
 const JOINT_LIMITS = {
@@ -38,38 +36,62 @@ function validateJointValue(name, value) {
 	}
 }
 
+// Safely stringify results for MCP `text` content to avoid returning undefined
+function safeStringify(obj) {
+    try {
+        const s = JSON.stringify(obj, null, 2);
+        return typeof s === "string" ? s : String(obj);
+    } catch (e) {
+        try {
+            return String(obj);
+        } catch (e2) {
+            return "<unserializable>";
+        }
+    }
+}
+
 export const toolHandlers = {
 	health_check: async () => {
-		const result = await httpRequest("/health-check", "POST");
-		return {
-			content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
-		};
-	},
+		const deny = ensureToolsAllowedOrError();
+		if (deny) return deny;
+        const result = await httpRequest("/health-check", "POST");
+        return {
+            content: [{ type: "text", text: safeStringify(result) }],
+        };
+    },
 
-	daemon_status: async () => {
-		const result = await httpRequest("/api/daemon/status", "GET");
-		return {
-			content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
-		};
-	},
+    reachy_status: async () => {
+        const deny = ensureToolsAllowedOrError();
+        if (deny) return deny;
+        const result = await httpRequest("/api/daemon/status", "GET");
+        return {
+            content: [{ type: "text", text: safeStringify(result) }],
+        };
+    },
 
-	daemon_start: async ({ wake_up = true }) => {
-		const result = await httpRequest("/api/daemon/start", "POST", null, {
-			wake_up: wake_up.toString(),
-		});
-		return {
-			content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
-		};
-	},
+    startup_reachy: async ({ wake_up = true } = {}) => {
+        const deny = ensureToolsAllowedOrError();
+        if (deny) return deny;
+        const result = await httpRequest("/api/daemon/start", "POST", null, {
+            wake_up: wake_up.toString(),
+        });
+        return {
+            content: [{ type: "text", text: safeStringify(result) }],
+        };
+    },
 
 	get_robot_state: async () => {
-		const result = await httpRequest("/api/state/full", "GET");
-		return {
-			content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
-		};
-	},
+		const deny = ensureToolsAllowedOrError();
+		if (deny) return deny;
+        const result = await httpRequest("/api/state/full", "GET");
+        return {
+            content: [{ type: "text", text: safeStringify(result) }],
+        };
+    },
 
 	move_set_target: async (args) => {
+		const deny = ensureToolsAllowedOrError();
+		if (deny) return deny;
 		const body = {};
 		if (args.head_pitch !== undefined) {
 			validateJointValue("head_pitch", args.head_pitch);
@@ -99,133 +121,134 @@ export const toolHandlers = {
 			validateJointValue("duration", args.duration);
 			body.duration = args.duration;
 		}
-		const result = await httpRequest("/api/move/set_target", "POST", body);
-		return {
-			content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
-		};
-	},
-
-	play_emotion: async ({ emotion }) => {
-		const result = await httpRequest(
-			`/api/move/play/recorded-move-dataset/pollen-robotics/reachy-mini-emotions-library/${emotion}`,
-			"POST",
-		);
-		return {
-			content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
-		};
-	},
-
-	play_dance: async ({ dance }) => {
-		const result = await httpRequest(
-			`/api/move/play/recorded-move-dataset/pollen-robotics/reachy-mini-dances-library/${dance}`,
-			"POST",
-		);
-		return {
-			content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
-		};
-	},
-
-	play_move: async ({ dataset, move }) => {
-		if (!ALLOWED_DATASETS.includes(dataset)) {
-			throw new Error(
-				`Invalid dataset. Allowed: ${ALLOWED_DATASETS.join(", ")}`,
-			);
-		}
-		const result = await httpRequest(
-			`/api/move/play/recorded-move-dataset/${dataset}/${move}`,
-			"POST",
-		);
-		return {
-			content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
-		};
-	},
-
-	list_emotions: async () => {
-		const result = await httpRequest(
-			"/api/move/recorded-move-datasets/list/pollen-robotics/reachy-mini-emotions-library",
-			"GET",
-		);
-		return {
-			content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
-		};
-	},
-
-	list_dances: async () => {
-		const result = await httpRequest(
-			"/api/move/recorded-move-datasets/list/pollen-robotics/reachy-mini-dances-library",
-			"GET",
-		);
-		return {
-			content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
-		};
-	},
-
-	list_moves: async ({ dataset }) => {
-		if (!ALLOWED_DATASETS.includes(dataset)) {
-			throw new Error(
-				`Invalid dataset. Allowed: ${ALLOWED_DATASETS.join(", ")}`,
-			);
-		}
-		const result = await httpRequest(
-			`/api/move/recorded-move-datasets/list/${dataset}`,
-			"GET",
-		);
-		return {
-			content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
-		};
-	},
-
-	daemon_wakeup: async () => {
-        // Direct wake endpoint: POST /api/daemon/wakeup
-        const steps = [];
-        const start = await timedRequest("daemon_status_before", "/api/daemon/status", "GET");
-        steps.push(start);
-
-        // Call the dedicated wake endpoint
-        const wake = await timedRequest("daemon_wakeup", "/api/daemon/wakeup", "POST");
-        steps.push(wake);
-
-        // After wake, enable motors (best-effort)
-        const motors = await timedRequest("motors_enabled", "/api/motors/set_mode/enabled", "POST");
-        steps.push(motors);
-
-        // Final status snapshot
-        const final = await timedRequest("daemon_status_final", "/api/daemon/status", "GET");
-        steps.push(final);
-
-        const summary = {
-            overall_backend_ready: Boolean(final.success && final.data && final.data.backend_status && final.data.backend_status.ready),
-            steps_count: steps.length,
-            slow_steps: steps.filter((s) => s.duration_ms && s.duration_ms > 2000),
-            failures: steps.filter((s) => s.success === false),
+        const result = await httpRequest("/api/move/set_target", "POST", body);
+        return {
+            content: [{ type: "text", text: safeStringify(result) }],
         };
-
-        return { content: [{ type: "json", json: { summary, steps } }] };
     },
 
-	get_camera_stream: async () => {
-		const baseUrl = getBaseUrl();
-		return {
-			content: [
-				{
-					type: "text",
-					text: JSON.stringify(
-						{
-							message: "Camera stream endpoint",
-							url: `${baseUrl}/api/camera/stream`,
-							content_type: "multipart/x-mixed-replace; boundary=frame",
-						},
-						null,
-						2,
-					),
-				},
-			],
-		};
+	play_emotion: async ({ emotion }) => {
+		const deny = ensureToolsAllowedOrError();
+		if (deny) return deny;
+        const result = await httpRequest(
+            `/api/move/play/recorded-move-dataset/pollen-robotics/reachy-mini-emotions-library/${emotion}`,
+            "POST",
+        );
+        return {
+            content: [{ type: "text", text: safeStringify(result) }],
+        };
+    },
+
+	play_dance: async ({ dance }) => {
+		const deny = ensureToolsAllowedOrError();
+		if (deny) return deny;
+        const result = await httpRequest(
+            `/api/move/play/recorded-move-dataset/pollen-robotics/reachy-mini-dances-library/${dance}`,
+            "POST",
+        );
+        return {
+            content: [{ type: "text", text: safeStringify(result) }],
+        };
+    },
+
+	play_move: async ({ dataset, move }) => {
+		const deny = ensureToolsAllowedOrError();
+		if (deny) return deny;
+		if (!ALLOWED_DATASETS.includes(dataset)) {
+			throw new Error(
+				`Invalid dataset. Allowed: ${ALLOWED_DATASETS.join(", ")}`,
+			);
+		}
+        const result = await httpRequest(
+            `/api/move/play/recorded-move-dataset/${dataset}/${move}`,
+            "POST",
+        );
+        return {
+            content: [{ type: "text", text: safeStringify(result) }],
+        };
+    },
+
+	list_emotions: async () => {
+		const deny = ensureToolsAllowedOrError();
+		if (deny) return deny;
+        const result = await httpRequest(
+            "/api/move/recorded-move-datasets/list/pollen-robotics/reachy-mini-emotions-library",
+            "GET",
+        );
+        return {
+            content: [{ type: "text", text: safeStringify(result) }],
+        };
+    },
+
+	list_dances: async () => {
+		const deny = ensureToolsAllowedOrError();
+		if (deny) return deny;
+        const result = await httpRequest(
+            "/api/move/recorded-move-datasets/list/pollen-robotics/reachy-mini-dances-library",
+            "GET",
+        );
+        return {
+            content: [{ type: "text", text: safeStringify(result) }],
+        };
+    },
+
+	list_moves: async ({ dataset }) => {
+		const deny = ensureToolsAllowedOrError();
+		if (deny) return deny;
+		if (!ALLOWED_DATASETS.includes(dataset)) {
+			throw new Error(
+				`Invalid dataset. Allowed: ${ALLOWED_DATASETS.join(", ")}`,
+			);
+		}
+        const result = await httpRequest(
+            `/api/move/recorded-move-datasets/list/${dataset}`,
+            "GET",
+        );
+        return {
+            content: [{ type: "text", text: safeStringify(result) }],
+        };
+    },
+
+    // daemon_wakeup removed; use startup_reachy for starting the daemon and waking motors
+
+    // NOTE: single-move goto_sleep endpoint is available at POST /api/move/play/goto_sleep.
+    // Use `shutdown_reachy` for a full shutdown flow that will invoke this as needed.
+
+	verify_wake: async () => {
+		// Prefer fast state probe; fallback to a safe short move if needed
+		const result = { wake_verified: false, checked: [], details: [] };
+
+		const state = await httpRequest("/api/state/full", "GET");
+		result.checked.push("state");
+		result.details.push(state);
+        if (state.success && state.data) {
+            result.wake_verified = true;
+            return { content: [{ type: "text", text: safeStringify(result) }] };
+        }
+
+		// Fallback: play a short safe move
+		const testMove = await httpRequest(
+			"/api/move/play/recorded-move-dataset/pollen-robotics/reachy-mini-dances-library/simple_nod",
+			"POST",
+		);
+		result.checked.push("test_move");
+		result.details.push(testMove);
+        if (
+            testMove.success &&
+            testMove.status &&
+            (testMove.status === 200 || testMove.status === 201)
+        ) {
+            result.wake_verified = true;
+        }
+
+        return { content: [{ type: "text", text: safeStringify(result) }] };
 	},
 
-    // Removed startup_reachy: replaced by a focused daemon_wakeup tool
+    // get_camera_stream removed: the daemon serves WebRTC signaling (ws://<host>:8443) instead of MJPEG.
 
-	shutdown_reachy: async () => {
+	// Preferred tool names: startup_reachy / shutdown_reachy
+
+    shutdown_reachy: async ({ goto_sleep = true } = {}) => {
 		// Improved shutdown flow with backend readiness handling:
 		// 0. GET /api/daemon/status
 		// 0b. If backend not ready, POST /api/daemon/start?wake_up=false and poll until ready (timeout)
@@ -239,8 +262,8 @@ export const toolHandlers = {
 		const steps = [];
 
 		// Step 0: initial daemon status
-		const initial = await httpRequest("/api/daemon/status", "GET");
-		steps.push({ step: "daemon_status_initial", result: initial });
+        const initial = await httpRequest("/api/daemon/status", "GET");
+        steps.push({ step: "reachy_status_initial", result: initial });
 
 		let backendReady = Boolean(
 			initial &&
@@ -251,17 +274,17 @@ export const toolHandlers = {
 
 		// If backend not ready, try to start it (without waking the robot) and poll
 		if (!backendReady) {
-			const startResp = await httpRequest("/api/daemon/start", "POST", null, {
-				wake_up: "false",
-			});
+            const startResp = await httpRequest("/api/daemon/start", "POST", null, {
+                wake_up: "false",
+            });
 			steps.push({ step: "daemon_start_for_shutdown", result: startResp });
 
 			// Poll up to 30s for backend.ready
 			const POLL_LIMIT = 30;
 			let elapsed = 0;
 			while (elapsed < POLL_LIMIT) {
-				const st = await httpRequest("/api/daemon/status", "GET");
-				steps.push({ step: `daemon_status_poll_${elapsed}s`, result: st });
+                const st = await httpRequest("/api/daemon/status", "GET");
+                steps.push({ step: `reachy_status_poll_${elapsed}s`, result: st });
 				if (
 					st &&
 					st.data &&
@@ -299,7 +322,7 @@ export const toolHandlers = {
 		}
 
 		// Step 3: play goto_sleep
-		const s3 = await httpRequest("/api/move/play/goto_sleep", "POST");
+        const s3 = await httpRequest("/api/move/play/goto_sleep", "POST");
 		steps.push({ step: "play_goto_sleep", result: s3 });
 
 		// Step 4: explicitly disable motors to ensure servos are released
@@ -307,15 +330,17 @@ export const toolHandlers = {
 		steps.push({ step: "motors_disabled", result: s4 });
 
 		// Step 5: stop daemon (don't request extra sleep)
-		const s5 = await httpRequest("/api/daemon/stop", "POST", null, {
-			goto_sleep: "false",
-		});
+        const s5 = await httpRequest("/api/daemon/stop", "POST", null, {
+            goto_sleep: goto_sleep ? "true" : "false",
+        });
 		steps.push({ step: "daemon_stop", result: s5 });
 
 		// Final status
-		const s6 = await httpRequest("/api/daemon/status", "GET");
-		steps.push({ step: "daemon_status_final", result: s6 });
+        const s6 = await httpRequest("/api/daemon/status", "GET");
+        steps.push({ step: "reachy_status_final", result: s6 });
 
-		return { content: [{ type: "json", json: steps }] };
+        return { content: [{ type: "text", text: safeStringify(steps) }] };
 	},
+
+    // removed daemon_stop alias in favor of startup_reachy/shutdown_reachy
 };
