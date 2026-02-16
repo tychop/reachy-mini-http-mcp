@@ -9,6 +9,24 @@ export const tools = [
 		},
 	},
 	{
+		name: "daemon_wakeup",
+		description:
+			"Trigger the daemon wake-up sequence (full robot wake). Use to fully wake the robot from sleep.\n\nThis replaces the previous `startup_reachy` tool which had a longer startup flow.",
+		inputSchema: {
+			type: "object",
+			properties: {},
+		},
+	},
+	{
+		name: "shutdown_reachy",
+		description:
+			"Shutdown Reachy Mini: stop running moves, request sleep and stop the daemon; returns status after each step.",
+		inputSchema: {
+			type: "object",
+			properties: {},
+		},
+	},
+	{
 		name: "daemon_status",
 		description:
 			"Get the current daemon health status. Returns daemon state and backend status.",
@@ -230,8 +248,7 @@ export const tools = [
 	},
 	{
 		name: "play_move",
-		description:
-			"Play any recorded movement from a dataset.",
+		description: "Play any recorded movement from a dataset.",
 		inputSchema: {
 			type: "object",
 			properties: {

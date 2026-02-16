@@ -9,9 +9,7 @@ description: "Control and interact with the Reachy Mini robot. Use when: (1) Sta
 
 Run these steps at the START of every conversation:
 
-1. Check if daemon is running: `reachy-mini_daemon_status`
-2. If not running, start it: `reachy-mini_daemon_start wake_up=true`
-3. Analyze conversation tone and play matching emotion: `reachy-mini_play_emotion`
+1. Startup reachy using `startup_reachy`
 
 ## Tool Call Execution Policy (STRICT)
 
@@ -22,6 +20,7 @@ Robot actions MUST run sequentially, never in parallel.
 3. For multi-step flows (emotion -> dance -> emotion), perform each step in order and confirm completion between steps.
 4. Never send two robot action calls concurrently (for example, do not run `play_emotion` and `play_dance` in parallel).
 5. If a call fails, handle or report the failure before attempting subsequent robot actions.
+6. Specifically: after `reachy-mini_daemon_start`, do not call any action (including `reachy-mini_play_emotion`) until the daemon reports it is ready. Use `reachy-mini_daemon_status` or `reachy-mini_health_check` to verify readiness.
 
 Applies to all Reachy action tools: `reachy-mini_play_emotion`, `reachy-mini_play_dance`, `reachy-mini_play_move`, `reachy-mini_move_set_target`.
 
