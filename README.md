@@ -25,9 +25,9 @@ The server uses environment variables for configuration:
 - `REACHY_HOST` - Robot hostname (default: `reachy-mini.home`)
 - `REACHY_PORT` - Robot port (default: `8000`)
 
-## Opencode Integration
+## MCP Server Integration
 
-The MCP server can be configured in your AI compagnion's configuration:
+The MCP server can be configured in your AI companion's configuration:
 
 ```json
 {
@@ -48,46 +48,43 @@ The MCP server can be configured in your AI compagnion's configuration:
 }
 ```
 
-## AI Agent Integration
+## AI Agent Skill
 
-Reachy Mini makes an excellent expressive companion for AI agents. Here's how to integrate it:
+This repo includes a skill for Reachy Mini that provides:
+- Auto-initialization on conversation start
+- Dynamic emotion selection based on conversation tone
+- Celebration dances on task completion
 
-Add this to your `AGENTS.md` (or other applicable file for your AI companion) to make the agent express emotions:
+### Installing the Skill
 
-```
-### Reachy Mini Robot
+Copy or symlink the skill to your AI agent's skills directory:
 
-IMPORTANT: When this file is read, first check if Reachy is running by calling `reachy-mini_daemon_status`. If not running, start it with `reachy-mini_daemon_start`.
+```bash
+# For Opencode
+cp -r ~/Developer/ReachyMiniHTTPMCP/skill ~/.config/opencode/skills/reachy-mini
 
-IMPORTANT: Play an appropriate emotion on Reachy BEFORE responding to the user. Use the `reachy-mini_play_emotion` tool first, then respond.
+# For Claude CLI
+cp -r ~/Developer/ReachyMiniHTTPMCP/skill ~/.claude/skills/reachy-mini
 
-For example:
-
-- If agreeing/entertained → play "cheerful1", "welcoming1" → play "cheerful1"
-- If questioning/curious → play "curious1" or "inquiring1"
-- If apologizing/sympathetic → play "sad1" or "understanding1"
-- If excited/enthusiastic → play "enthusiastic1" or "enthusiastic2"
-- If thinking → play "thoughtful1" or "thoughtful2"
-- If greeting → play "welcoming1" or "attentive1"
-
-Note: The emotion MUST be played before the response, not after.
-
-#### Returning After Being Busy
-
-If you were away (e.g., running a long task, waiting for compilation, researching) and are now responding again:
-
-1. Play an attention-getting emotion first: "attentive1" or "attentive2"
-2. If the task took more than ~30 seconds, also add: "relief1" or "success1"
-3. Then respond to the user
+# For Claude Agents
+cp -r ~/Developer/ReachyMiniHTTPMCP/skill ~/.agents/skills/reachy-mini
 ```
 
-## Ideas for AI Integration
+### Enabling the Skill
 
-- **Emotional Feedback**: Have Reachy react to code compilations (celebrate success, show concern on errors)
-- **Code Reviews**: Express curiosity when reviewing PRs, gratitude when approved
-- **Notifications**: React when long-running tasks complete
-- **Pair Programming**: Express excitement when solving difficult problems
-- **Onboarding**: Greet new users with welcoming emotions
+Add this to your agent's instructions (e.g., `AGENTS.md`, `CLAUDE.md`):
+
+```markdown
+## Reachy Mini Robot
+
+**Load the `reachy-mini` skill at the START of every conversation.** This skill handles:
+- Initialization (daemon status, starting if needed)
+- Dynamic emotion selection based on conversation tone
+- Celebration dances on task completion
+- All robot interactions
+```
+
+Restart your AI agent to pick up the skill.
 
 ## Available Tools
 
