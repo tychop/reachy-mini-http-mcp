@@ -36,7 +36,7 @@ The MCP server can be configured in your AI companion's configuration:
 			"type": "local",
 			"command": [
 				"node",
-				"/Users/<username>/Developer/ReachyMiniHTTPMCP/src/server.js"
+				"<path to reachy-mini-http-mcp>/src/server.js"
 			],
 			"enabled": true,
 			"env": {
