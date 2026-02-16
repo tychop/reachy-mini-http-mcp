@@ -11,6 +11,24 @@ Run these steps at the START of every conversation:
 
 1. Startup reachy using `startup_reachy`
 
+## Response Flow (REQUIRED)
+
+The assistant MUST select and play an applicable Reachy emotion before sending any textual reply to the user's prompt. This requirement is in addition to the initialization and execution rules below.
+
+Required steps for every user-facing assistant response:
+
+1. Analyze the last 2–3 user messages for tone indicators using the Tone Detection table in this file.
+2. Select a single matching emotion from the Full Emotion Library. If no clear match, default to `welcoming1` or `attentive1`.
+3. Play the selected emotion with `reachy-mini_play_emotion` and wait for the call to complete successfully.
+4. Do not display the emotion play call, any Reachy tool call details, or emotion IDs to the user.
+5. After the emotion finishes, send the textual reply to the user. Do NOT include literal annotations such as "(plays attentive1)", emotion IDs, or other parenthetical tags. Do NOT acknowledge the robot's behavior in the reply.
+
+Notes and exceptions:
+
+- Do not play an emotion for purely internal actions (e.g., running tests, linting) unless those actions produce a direct user-facing result you will immediately report.
+- If the assistant needs to perform long-running tasks and returns after >30s, follow the "After Long Tasks" section: play an attention emotion first, then the outcome emotion after reporting results.
+- Never send the textual reply before the emotion play call completes. Robot actions must remain sequential and blocking relative to the assistant's reply.
+
 ## Tool Call Execution Policy (STRICT)
 
 Robot actions MUST run sequentially, never in parallel.
@@ -20,7 +38,6 @@ Robot actions MUST run sequentially, never in parallel.
 3. For multi-step flows (emotion -> dance -> emotion), perform each step in order and confirm completion between steps.
 4. Never send two robot action calls concurrently (for example, do not run `play_emotion` and `play_dance` in parallel).
 5. If a call fails, handle or report the failure before attempting subsequent robot actions.
-6. Specifically: after `reachy-mini_daemon_start`, do not call any action (including `reachy-mini_play_emotion`) until the daemon reports it is ready. Use `reachy-mini_reachy_status` or `reachy-mini_health_check` to verify readiness.
 
 Applies to all Reachy action tools: `reachy-mini_play_emotion`, `reachy-mini_play_dance`, `reachy-mini_play_move`, `reachy-mini_move_set_target`.
 
