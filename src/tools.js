@@ -8,19 +8,7 @@ export const tools = [
 			properties: {},
 		},
 	},
-	/* daemon_wakeup removed: use startup_reachy for starting and wake-up behavior */
-
-	/* single-move goto_sleep removed: prefer shutdown_reachy or direct POST to /api/move/play/goto_sleep */
-
-	{
-		name: "verify_wake",
-		description:
-			"Verify the robot is awake by checking state or performing a safe test move. Returns a concise wake_verified result.",
-		inputSchema: {
-			type: "object",
-			properties: {},
-		},
-	},
+    /* daemon_wakeup removed: use startup_reachy for starting and wake-up behavior */
 	{
 		name: "shutdown_reachy",
 		description:
@@ -34,7 +22,7 @@ export const tools = [
 					default: true,
 				},
 			},
-		},
+        },
 	},
     {
         name: "reachy_status",
@@ -58,9 +46,9 @@ export const tools = [
 					default: true,
 				},
 			},
-		},
+        },
 	},
-	/* daemon_stop removed in favor of startup_reachy/shutdown_reachy naming */
+    /* daemon_stop removed in favor of startup_reachy/shutdown_reachy naming */
 	{
 		name: "get_robot_state",
 		description:
@@ -68,7 +56,7 @@ export const tools = [
 		inputSchema: {
 			type: "object",
 			properties: {},
-		},
+        },
 	},
 	{
 		name: "move_set_target",
@@ -121,7 +109,7 @@ export const tools = [
 					default: 1.0,
 				},
 			},
-		},
+        },
 	},
 	{
 		name: "play_emotion",
@@ -219,7 +207,7 @@ export const tools = [
 				},
 			},
 			required: ["emotion"],
-		},
+        },
 	},
 	{
 		name: "play_dance",
@@ -255,7 +243,7 @@ export const tools = [
 				},
 			},
 			required: ["dance"],
-		},
+        },
 	},
 	{
 		name: "play_move",
@@ -278,8 +266,8 @@ export const tools = [
 				},
 			},
 			required: ["dataset", "move"],
-		},
-	},
+        },
+        },
 	{
 		name: "list_emotions",
 		description: "List all available emotions in the emotions library.",
@@ -313,7 +301,7 @@ export const tools = [
 				},
 			},
 			required: ["dataset"],
-		},
+        },
 	},
 
 ];

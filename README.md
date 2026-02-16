@@ -74,14 +74,16 @@ cp -r ~/Developer/ReachyMiniHTTPMCP/skill ~/.agents/skills/reachy-mini
 
 Add this to your agent's instructions (e.g., `AGENTS.md`, `CLAUDE.md`):
 
-```markdown
-## Reachy Mini Robot
+```markdown## Reachy Mini Robot
 
 **Load the `reachy-mini` skill at the START of every conversation.** This skill handles:
+
 - Initialization (daemon status, starting if needed)
 - Dynamic emotion selection based on conversation tone
 - Celebration dances on task completion
 - All robot interactions
+
+The skill will automatically run the initialization workflow and select appropriate emotions.
 ```
 
 Restart your AI agent to pick up the skill.
