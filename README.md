@@ -86,6 +86,11 @@ Add this to your agent's instructions (e.g., `AGENTS.md`, `CLAUDE.md`):
 
 Restart your AI agent to pick up the skill.
 
+### Note about assistant behavior
+
+- The included `reachy-mini` skill now requires the assistant to play a matching Reachy emotion before sending any textual reply to the user. The assistant must analyze recent user messages for tone, play the selected emotion, wait for it to complete, then send its reply.
+- Replies must not include literal play annotations or emotion IDs such as "(plays attentive1)". If acknowledging the robot's action, use natural language (for example: "I nodded to acknowledge that — here's what I suggest.").
+
 ## Available Tools
 
 ### Health & Status
