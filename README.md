@@ -59,7 +59,7 @@ This repo includes a skill for Reachy Mini that provides:
 
 Copy or symlink the skill to your AI agent's skills directory:
 
-```bash
+```zsh
 # For Opencode
 cp -r ~/Developer/ReachyMiniHTTPMCP/skill ~/.config/opencode/skills/reachy-mini
 
